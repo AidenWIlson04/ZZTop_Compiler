@@ -62,7 +62,7 @@ class compiler:
                     self.checkAssignment(doc, line)
             #increment line number
             self.lineNumber += 1
-        print(f"\nCompilation finished with {self.errorCount} error(s)\n")
+        print(f"\nCompilation of file '{self.fileName}' finished with {self.errorCount} error(s)\n")
                 
     def checkInput(self, doc, line):
         #call the check identifier function to see if its a valid identifier
@@ -78,9 +78,13 @@ class compiler:
             
     
     def checkOutput(self, doc, line):
+        self.correctOutput = self.checkIdentifier(str(doc[1]), returnBool=True)
+        self.outputErrorMessage = f"    >{str(doc[1])} has not been declared"
         #If the variable to output is not in current variables
         if not (str(doc[1]) in self.currentVariables):
-            print(f"    >{str(doc[1])} has not been declared")
+            if self.correctOutput == True:
+                self.outputErrorMessage += ", but is valid"
+            print(self.outputErrorMessage)
             #increment total amount of errors
             self.errorCount += 1
         '''if the line being processed is not the second last line 
@@ -131,12 +135,12 @@ class compiler:
                 #if the item was not a correct variable and isnt in the currentVariable list
                 if item not in self.currentVariables:
                     #create variable to store the error message
-                    self.setIdentErrorMessage = f"    >The value '{item}' does not exist, "
+                    self.setIdentErrorMessage = f"    >The value '{item}' does not exist"
                     #increment total amount of errors
                     self.errorCount += 1
                     #if the variable doesnt follow correct syntax, add it to the error message
                     if self.correctIdentifier == False:
-                        self.setIdentErrorMessage += "and does not follow correct identifier syntax"
+                        self.setIdentErrorMessage += ", and does not follow correct identifier syntax"
                         self.correctSyntax = False
                     #print the error message
                     print(self.setIdentErrorMessage)
