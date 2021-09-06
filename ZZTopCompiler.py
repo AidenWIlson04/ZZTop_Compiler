@@ -1,6 +1,7 @@
 #import necessary librarys
 import spacy
 
+#load the spacy dictionary
 nlp = spacy.load("en_core_web_sm")
 
 class compiler:
@@ -31,14 +32,13 @@ class compiler:
         #list of all variables/identifiers that have been defined
         self.currentVariables = []
         print(f"\nCompiling: {self.fileName}\n")
+        self.errorCount = 0
         #iterate through each line of the source code
         for line in self.sourceLines:
-            #Counter for the amount of errors on the current line
-            self.amountOfLineErrors = 0
             #essentially splits the line into individual tokens
             doc = nlp(line.strip()) 
             #seperates the lines
-            print("***********")
+            print("---------------------")
             #print the original line with leading, trailing and any \n commands
             print(f"{line.strip()}")
             #print amount of errors on current line
@@ -49,114 +49,94 @@ class compiler:
                 if token.text == "Input":
                     #call checkInput function
                     self.checkInput(doc, line)
-                    #print total amount of errors on current line
-                    print(f"    >Total errors on line: {self.amountOfLineErrors}")
                 if token.text == "Output":
                     #call checkOutput function
                     self.checkOutput(doc, line)
-                    #print total amount of errors on current line
-                    print(f"    >Total errors on line: {self.amountOfLineErrors}")
                 if token.text == "Set":
                     self.checkAssignment(doc, line)
-                     #print total amount of errors on current line
-                    print(f"    >Total errors on line: {self.amountOfLineErrors}")
             #increment line number
             self.lineNumber += 1
+        print(f"\nCompilation finished with {self.errorCount} errors\n")
                 
     def checkInput(self, doc, line):
         #call the check identifier function to see if its a valid identifier
         if str(doc[-1]) == "!" and str(doc[0]) == "Input":
             self.checkIdentifier(str(doc[1]), returnBool=False)
-
-        #if the line being processed is not the second last line 
-        #(which ! doesnt need to be on) and the last character
-        #is not an ! print error stating there is a missing !
-        
+        '''if the line being processed is not the second last line 
+        (which ! doesnt need to be on) and the last character
+        is not an ! print error stating there is a missing !'''
         if line != self.sourceLines[-2] and str(doc[-1]) != "!":
             print("    >Missing '!' at end of line")
-            #increment total amount of errors on current line
-            self.amountOfLineErrors += 1
+            #increment total amount of errors 
+            self.errorCount += 1
+            
     
     def checkOutput(self, doc, line):
-        print(self.currentVariables)
+        #If the variable to output is not in current variables
         if not (str(doc[1]) in self.currentVariables):
             print(f"    >{str(doc[1])} has not been declared")
-            self.amountOfLineErrors += 1    
-
+            #increment total amount of errors
+            self.errorCount += 1
+        '''if the line being processed is not the second last line 
+        (which ! doesnt need to be on) and the last character
+        is not an ! print error stating there is a missing !'''
         if line != self.sourceLines[-2] and str(doc[-1]) != "!":
             print("    >Missing '!' at end of line")
-            #increment total amount of errors on current line
-            self.amountOfLineErrors += 1
-
-
+            #increment total amount of errors
+            self.errorCount += 1
+            
 
     def checkAssignment(self, doc, line):
-        #Check to see if the variable has already been declared
-        #If it hasnt check if its a valid identifier
-        #do split() on the value and iterate over it. While iterating check in this order 
-        #If the variable is in self.currentVaribles, then try to make it an integer
+        #list of unwanted operators to remove
         self.unwantedOperators = ["+", "-", "/", "*"]
-        self.correctSyntax = True
-        if len(doc) > 2:
-            if str(doc[2]) != "to":
-                print(f"    >Missing 'to' after variable value being set ")
-                self.amountOfLineErrors += 1
-                self.correctSyntax = False
-                ''' ^^^ Isnt setting to false?'''
         if len(doc) < 5:
             print(f"    >Malformed Assignment <{str(doc)}>")
-            self.checkIdentifier(str(doc[1]), returnBool=False)
-            self.amountOfLineErrors += 1
-            self.correctSyntax = False
-        if self.correctSyntax == True:
-            if str(doc[1]) in self.currentVariables:
-                self.setValue = str(doc[4:]).split()
-                #["J3", "-", "1", "+", "xA1"]
-                for item in self.setValue:
-                    if item in self.unwantedOperators:
-                        self.setValue.remove(item)
-                #["J3", "1", "xA1"]
-                for item in self.setValue:
-                    try:
-                        item = int(item)
-                    except ValueError:
-                        if item not in self.currentVariables:
-                            print(f"    >The value <{item}> does not exist.")
-                            self.correctSyntax = False
-                            #increment total amount of errors on current line
-                            self.amountOfLineErrors += 1   
-            else:               
-                self.setValue = str(doc[3:]).split()
-                #["J3", "-", "1", "+", "xA1"]
-                for item in self.setValue:
-                    if item in self.unwantedOperators:
-                        self.setValue.remove(item)
-                #["J3", "1", "xA1"]
-                for item in self.setValue:
-                    try:
-                        item = int(item)
-                    except ValueError:
-                        if item not in self.currentVariables:
-                            print(f"    >The value {item} does not exist.")
-                            self.correctSyntax = False
-                            #increment total amount of errors on current line
-                            self.amountOfLineErrors += 1 
-                if self.correctSyntax == True:
-                    self.checkIdentifier(str(doc[1]), returnBool=False) 
-
+            #increment total amount of errors
+            self.errorCount += 1
+        try:
+            if str(doc[2]) != "to":
+                print(f"    >Missing 'to' after variable value being set ")
+            #increment total amount of errors
+            self.errorCount += 1
+        except:
+            pass 
+        #if the line is not the second last line of the code 
         if line != self.sourceLines[-2] and str(doc[-1]) != "!":
             print("    >Missing '!' at end of line")
-            self.amountOfLineErrors += 1
-            self.correctSyntax = False
-        if self.correctSyntax == True:
-            self.checkIdentifier(str(doc[1])) 
-        
+            #increment total amount of errors
+            self.errorCount += 1
+        #split the line from the to statement onwards
+        self.setValue = str(doc[4:]).split()
+        #iterate through the list and if the item is one of the unwanted operator, remove it form the list
+        for item in self.setValue:
+            if item in self.unwantedOperators:
+                self.setValue.remove(item)
+        #iterate through the list of words in the line
+        for item in self.setValue:
+            #try to see if its an integer, if the try block works, code skips over the item
+            try:
+                item = int(item)
+            #if a value error is raised, it is not an integer
+            except ValueError:
+                #check to see if the item being iterated through is a valid integer
+                self.correctIdentifier = self.checkIdentifier(item, returnBool=True)
+                #if the item was not a correct variable and isnt in the currentVariable list
+                if item not in self.currentVariables:
+                    #create variable to store the error message
+                    self.setIdentErrorMessage = f"    >The value '{item}' does not exist, "
+                    #if the variable doesnt follow correct syntax, add it to the error message
+                    if self.correctIdentifier == False:
+                        self.setIdentErrorMessage += "and does not follow correct identifier syntax"
+                        #increment total amount of errors
+                        self.errorCount += 1
+                    #print the error message
+                    print(self.setIdentErrorMessage)
+   
     
     def checkIdentifier(self, identifier, returnBool):
         #lists of valid characters and digits that can be used in an identifier
         self.validCharUpper = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] 
         self.validIdentifierPadder = ["a", "b", "c", "d", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        #self.validDigit = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
         #If the identifier passed in is allowed, default is True
         self.allowedIdentifier = True
         #make a varaible with a list containing every element of the passed in identifier
@@ -164,25 +144,25 @@ class compiler:
         #if the first character is not a capital letter error saying its not apart of the valid character list
         if self.identifierList[0] not in self.validCharUpper:
             #incrememnt line errors
-            self.amountOfLineErrors += 1
+            self.errorCount += 1
             print(f"    >First letter of {identifier} must be in <ABCDEFGHIJ>")
             #set the allowedIdentifier bool to false
             self.allowedIdentifier = False
-        #if the element is not an allowed digit or lower char error sayig it is not a valid identifier
+        #if the element is not an allowed digit or lower char, error saying it is not a valid identifier
         for element in self.identifierList[1:]:
             if (element not in self.validIdentifierPadder):
-                self.amountOfLineErrors += 1
+                #increment total amount of errors
+                self.errorCount += 1
                 print(f"    >{identifier} invalid from second character onwards, must be in <abcd> or <0123456789>")
                 self.allowedIdentifier = False
-                break
-        #if the identifier is allowed, append it to a list of allowed identifiers
+        #if the return bool is false append the valid identifier to a list of current vars
         if returnBool == False:
             if self.allowedIdentifier == True:
                 self.currentVariables.append(identifier) 
+        #if return bool is true return the bool saying its an approved variable
         else:
             return self.allowedIdentifier   
                           
 if __name__ == "__main__":
     compiler()
     
-
