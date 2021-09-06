@@ -35,7 +35,10 @@ class compiler:
         self.errorCount = 0
         #iterate through each line of the source code
         for line in self.sourceLines:
-            #essentially splits the line into individual tokens
+            #If the word "When" is in the split line skip the current iteration and move to the next line
+            if "When" in line.split():
+                continue            
+            #essentially splits the line into individual tokens 
             doc = nlp(line.strip()) 
             #seperates the lines
             print("---------------------")
@@ -49,14 +52,17 @@ class compiler:
                 if token.text == "Input":
                     #call checkInput function
                     self.checkInput(doc, line)
+                #if the token is the Output command
                 if token.text == "Output":
                     #call checkOutput function
                     self.checkOutput(doc, line)
+                #if the token is the Set command
                 if token.text == "Set":
+                    #call checkOutput function
                     self.checkAssignment(doc, line)
             #increment line number
             self.lineNumber += 1
-        print(f"\nCompilation finished with {self.errorCount} errors\n")
+        print(f"\nCompilation finished with {self.errorCount} error(s)\n")
                 
     def checkInput(self, doc, line):
         #call the check identifier function to see if its a valid identifier
@@ -85,10 +91,10 @@ class compiler:
             #increment total amount of errors
             self.errorCount += 1
             
-
     def checkAssignment(self, doc, line):
         #list of unwanted operators to remove
-        self.unwantedOperators = ["+", "-", "/", "*"]
+        self.unwantedOperators = ["+", "-", "/", "*", "!"]
+        self.correctSyntax = True
         if len(doc) < 5:
             print(f"    >Malformed Assignment <{str(doc)}>")
             #increment total amount of errors
@@ -96,8 +102,9 @@ class compiler:
         try:
             if str(doc[2]) != "to":
                 print(f"    >Missing 'to' after variable value being set ")
-            #increment total amount of errors
-            self.errorCount += 1
+                #increment total amount of errors
+                self.errorCount += 1
+                self.correctSyntax = False
         except:
             pass 
         #if the line is not the second last line of the code 
@@ -105,8 +112,9 @@ class compiler:
             print("    >Missing '!' at end of line")
             #increment total amount of errors
             self.errorCount += 1
+            self.correctSyntax = False
         #split the line from the to statement onwards
-        self.setValue = str(doc[4:]).split()
+        self.setValue = str(doc[3:]).split()
         #iterate through the list and if the item is one of the unwanted operator, remove it form the list
         for item in self.setValue:
             if item in self.unwantedOperators:
@@ -124,14 +132,18 @@ class compiler:
                 if item not in self.currentVariables:
                     #create variable to store the error message
                     self.setIdentErrorMessage = f"    >The value '{item}' does not exist, "
+                    #increment total amount of errors
+                    self.errorCount += 1
                     #if the variable doesnt follow correct syntax, add it to the error message
                     if self.correctIdentifier == False:
                         self.setIdentErrorMessage += "and does not follow correct identifier syntax"
-                        #increment total amount of errors
-                        self.errorCount += 1
+                        self.correctSyntax = False
                     #print the error message
                     print(self.setIdentErrorMessage)
-   
+        if self.correctSyntax == True:
+            #check if identifier being set is valid
+            self.checkIdentifier(str(doc[1]), returnBool=False)
+    
     
     def checkIdentifier(self, identifier, returnBool):
         #lists of valid characters and digits that can be used in an identifier

@@ -5,6 +5,7 @@ Input !
 Set !
 Set A3 !
 Set Ab3 to J3 - 1 + xA1 
+When (J1 = J2, Set A3 to 0), (J1 < J2, Set A3 to -1), Set A3 to 1 !
 Output JJ1 !
 Output A3
 Stop
