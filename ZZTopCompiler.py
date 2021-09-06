@@ -1,5 +1,6 @@
 #import necessary librarys
 import spacy
+import os
 
 #load the spacy dictionary
 nlp = spacy.load("en_core_web_sm")
@@ -15,7 +16,7 @@ class compiler:
         #Trys to open a file by the name of inputed file name
         try:
             self.fileName = input("Name of File: ")
-            self.source = open(self.fileName, 'r')
+            self.source = open(os.path.join("sourceFiles", self.fileName), 'r')
         #If no file exists, asks again
         except:
             print("No file by that name")
