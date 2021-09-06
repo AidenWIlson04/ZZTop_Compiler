@@ -1,0 +1,10 @@
+Start
+Input JJ1 !
+Input J2 
+Input !
+Set !
+Set A3 !
+Set Ab3 to J3 - 1 + xA1 
+Output JJ1 !
+Output A3
+Stop
