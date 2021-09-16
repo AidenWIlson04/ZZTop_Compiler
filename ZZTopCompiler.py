@@ -14,14 +14,14 @@ class compiler:
        
     def openFile(self):
         #Trys to open a file by the name of inputed file name
-        try:
-            self.fileName = input("Name of File: ")
-            self.source = open(os.path.join("sourceFiles", self.fileName), 'r')
-        #If no file exists, asks again
-        except:
-            print("No file by that name")
-            self.fileName = input("Name of File: ")
-            self.source = open(self.fileName, 'r')
+        while True:   
+            try:
+                self.fileName = input("Name of File: ")
+                self.source = open(os.path.join("sourceFiles", self.fileName), 'r')
+                break
+            #If no file exists, asks again
+            except:
+                print("No file by that name")
         #Reads each line of the file and appends it to an array
         self.sourceLines = self.source.readlines()
         #Close file
