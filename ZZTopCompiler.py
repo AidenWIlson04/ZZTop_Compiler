@@ -32,13 +32,34 @@ class compiler:
         self.lineNumber = 1
         #list of all variables/identifiers that have been defined
         self.currentVariables = []
+        #Print the name of the file being compiled
         print(f"\nCompiling: {self.fileName}\n")
+        #Initialise error count variable 
         self.errorCount = 0
+        #If the first line of the source code isnt start print error and add to error total 
+        if (self.sourceLines[0]).strip() != "Start":
+            print(f"> Missing 'Start' at beginning of program")
+            self.errorCount += 1
+        #If the last line of the source code isnt stop print error and add to error total 
+        if (self.sourceLines[-1]).strip() != "Stop":
+            print(f"> Missing 'Stop' at end of program") 
+            self.errorCount += 1
         #iterate through each line of the source code
         for line in self.sourceLines:
-            #If the word "When" is in the split line skip the current iteration and move to the next line
+            #If the word "When" or "Start" or "Stop" is in the line skip the iteration and move to the next line
             if "When" in line.split():
-                continue            
+                print("---------------------")
+                print(line.strip())
+                continue   
+            if "Start" in line.split():
+                print("---------------------")
+                print(line.strip())
+                continue
+            if "Stop" in line.split():
+                print("---------------------")
+                print(line.strip())
+                print("---------------------")
+                continue
             #essentially splits the line into individual tokens 
             doc = nlp(line.strip()) 
             #seperates the lines

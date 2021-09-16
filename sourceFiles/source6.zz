@@ -1,0 +1,7 @@
+Start
+When (J1 = J2, Set A3 to 0) (J1 < J2, Set A3 to -1) Set A3 to 1 !
+Input J1 !
+Set Ab3 to J1 + 1 !
+Output J1 !
+Output Ab3
+Stop
